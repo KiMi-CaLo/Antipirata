@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ANTIPIRATA.EXE v2.0 — Ciberseguridad y Ética del Software</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#030712;
+    --bg-1:#0A1120;
+    --panel:#0D182E;
+    --panel-2:#070F1E;
+    --panel-border:rgba(0,255,209,0.25);
+    --cyan:#00FFD1;
+    --cyan-dim:#008F7A;
+    --amber:#FFB703;
+    --red:#FF3366;
+    --red-dim:#801933;
+    --violet:#9D4EDD;
+    --ink:#E2E8F0;
+    --ink-dim:#8A99AD;
+    --shadow: 0 20px 50px rgba(0,0,0,0.75), 0 0 20px rgba(0,255,209,0.08);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0; overscroll-behavior:none;}
+  body{
+    background:
+      radial-gradient(circle at 15% 10%, rgba(0,255,209,0.12), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(157,78,221,0.12), transparent 45%),
+      var(--bg-0);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    height:100vh;
+    height:100dvh;
+    width:100vw;
+    overflow:hidden;
+    position:fixed; inset:0;
+    touch-action:none;
+    user-select:none;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  .disp{ font-family:'Chakra Petch', sans-serif; }
+
+  /* circuit texture & terminal scanline overlay */
+  .circuit-bg{
+    position:absolute; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(0,255,209,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,209,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  .scanlines{
+    position:absolute; inset:0; z-index:1; pointer-events:none;
+    background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.15) 50%);
+    background-size: 100% 4px;
+    opacity: 0.5;
+  }
+
+  .app{ position:relative; height:100%; width:100%; z-index:2; }
+  .screen{
+    position:absolute; inset:0; display:none;
+    flex-direction:column; align-items:center; justify-content:center;
+    padding:18px; gap:14px; text-align:center;
+    overflow-y:auto;
+  }
+  .screen.active{ display:flex; }
+
+  /* ---------- START SCREEN ---------- */
+  .eyebrow{
+    font-size:10px; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--cyan); font-weight:700; text-shadow: 0 0 10px rgba(0,255,209,0.4);
+  }
+  .logo{
+    font-family:'Chakra Petch', sans-serif; font-weight:700;
+    font-size:clamp(32px, 8vw, 54px); line-height:1; letter-spacing:-0.01em;
+    margin:4px 0 2px; color:#fff; text-shadow: 0 0 25px rgba(0,255,209,0.5);
+  }
+  .logo .dot{ color:var(--red); text-shadow: 0 0 20px rgba(255,51,102,0.6); }
+  .logo-sub{ font-size:12px; color:var(--ink-dim); max-width:440px; line-height:1.5; margin-bottom:2px;}
+
+  .panel-box{
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:14px;
+    padding:14px 16px; max-width:440px; width:100%; box-shadow:var(--shadow);
+    font-size:12.5px; color:var(--ink-dim); line-height:1.55; text-align:left;
+    position:relative;
+  }
+  .panel-box::before{
+    content:''; position:absolute; top:0; left:12px; width:30px; height:2px; background:var(--cyan);
+  }
+  .panel-box b{ color:var(--ink); }
+  .brief-row{ display:flex; gap:10px; align-items:flex-start; margin-bottom:6px; }
+  .brief-row:last-child{ margin-bottom:0; }
+  .brief-icon{ flex-shrink:0; width:22px; text-align:center; }
+
+  /* Difficulty Selector */
+  .diff-selector{ display:flex; gap:6px; width:100%; max-width:440px; justify-content:center; }
+  .diff-btn{
+    flex:1; background:var(--panel-2); border:1px solid var(--panel-border); border-radius:10px;
+    padding:8px 6px; font-family:'Chakra Petch',sans-serif; font-size:11px; font-weight:700;
+    color:var(--ink-dim); cursor:pointer; transition:all .15s ease; text-align:center;
+  }
+  .diff-btn.active{ background:rgba(0,255,209,0.15); border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 12px rgba(0,255,209,0.2); }
+
+  .btn{
+    font-family:'Chakra Petch', sans-serif; cursor:pointer; border:none;
+    border-radius:12px; font-weight:700; letter-spacing:.04em;
+    transition:transform .12s ease, filter .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{ transform:scale(.96); }
+  .btn-lg{ padding:15px 36px; font-size:18px; }
+  .btn-primary{ background:linear-gradient(180deg, #33FFDD, var(--cyan)); color:#031B17; box-shadow:0 10px 25px rgba(0,255,209,0.3); }
+  .btn-primary:hover{ filter:brightness(1.08); box-shadow:0 12px 30px rgba(0,255,209,0.45); }
+  .btn-ghost{
+    background:transparent; color:var(--ink); border:1px solid var(--panel-border);
+    padding:10px 18px; font-size:13px;
+  }
+  .btn-ghost:hover{ border-color:var(--cyan); color:var(--cyan); background:rgba(0,255,209,0.05); }
+  .btn-violet{ background:linear-gradient(180deg,#B873E8,var(--violet)); color:#1A052B; }
+
+  .start-actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .start-foot{ font-size:10.5px; color:var(--ink-dim); letter-spacing:.04em; margin-top:2px;}
+
+  /* Leaderboard snippet on start */
+  .mini-lb{ display:flex; gap:12px; justify-content:center; font-size:11.5px; color:var(--ink-dim); }
+  .mini-lb span{ color:var(--amber); font-weight:700; }
+
+  /* ---------- GAME SCREEN ---------- */
+  #screen-game{ padding:0; justify-content:flex-start; }
+  .hud{
+    width:100%; display:flex; align-items:center; justify-content:space-between;
+    gap:6px; padding:8px 12px; background:var(--panel-2);
+    border-bottom:1px solid var(--panel-border); flex-shrink:0; z-index:3;
+  }
+  .hud-title{ font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:12px; color:var(--cyan); letter-spacing:.05em; display:flex; align-items:center; gap:6px;}
+  .hud-title .led{ width:7px;height:7px;border-radius:50%; background:var(--cyan); box-shadow:0 0 10px var(--cyan); animation:ledPulse 1.4s infinite; }
+  @keyframes ledPulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .hud-stats{ display:flex; gap:12px; align-items:center; }
+  .hud-stat{ font-size:10px; color:var(--ink-dim); letter-spacing:.06em; text-transform:uppercase; text-align:left; line-height:1.1;}
+  .hud-stat b{ display:block; font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--ink); font-weight:700; }
+  .hud-btns{ display:flex; gap:5px; }
+  .icon-btn{
+    width:32px; height:32px; border-radius:8px; background:var(--panel);
+    border:1px solid var(--panel-border); color:var(--ink); font-size:14px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .icon-btn:active{ transform:scale(.92); }
+
+  .combo-bar{
+    height:3px; width:100%; background:var(--panel-2); flex-shrink:0; overflow:hidden; position:relative; z-index:3;
+  }
+  .combo-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--cyan),var(--amber)); transition:width .2s ease; }
+
+  .play-wrap{ position:relative; flex:1; width:100%; overflow:hidden; }
+  #gameCanvas{ position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+
+  .toast-layer{ position:absolute; top:8px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:5px; pointer-events:none; z-index:5; padding:0 10px;}
+  .toast{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:7px 12px; border-radius:8px;
+    max-width:90%; text-align:center; line-height:1.35;
+    background:rgba(7,15,30,0.92); border:1px solid var(--panel-border); color:var(--ink);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    animation: toastIn .2s ease, toastOut .35s ease 2s forwards;
+  }
+  .toast.good{ border-color:rgba(0,255,209,0.5); color:var(--cyan); }
+  .toast.bad{ border-color:rgba(255,51,102,0.5); color:#FFB3C2; }
+  @keyframes toastIn{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes toastOut{ to{opacity:0; transform:translateY(-5px);} }
+
+  .floater{
+    position:absolute; font-family:'Chakra Petch',sans-serif; font-weight:700; font-size:14px;
+    pointer-events:none; z-index:6; animation: floatUp .75s ease forwards;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+  }
+  @keyframes floatUp{ 0%{opacity:1; transform:translateY(0);} 100%{opacity:0; transform:translateY(-38px);} }
+
+  .touch-controls{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 12px calc(8px + env(safe-area-inset-bottom));
+    background:var(--panel-2); border-top:1px solid var(--panel-border); flex-shrink:0; z-index:3;
+  }
+  .dpad-btn{
+    width:54px; height:48px; border-radius:10px; background:var(--panel);
+    border:1px solid var(--panel-border); color:var(--cyan); font-size:20px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .dpad-btn:active{ background:rgba(0,255,209,0.2); }
+  .touch-hint{ font-size:10.5px; color:var(--ink-dim); text-align:center; flex:1; letter-spacing:.02em; }
+
+  /* ---------- OVERLAYS & MODALS ---------- */
+  .overlay{
+    position:absolute; inset:0; z-index:20; display:none; align-items:center; justify-content:center;
+    background:rgba(3,7,18,0.85); backdrop-filter:blur(5px); padding:16px;
+  }
+  .overlay.show{ display:flex; }
+  .card{
+    background:var(--panel); border:1px solid var(--panel-border); border-radius:16px;
+    padding:20px; max-width:420px; width:100%; box-shadow:var(--shadow);
+    max-height:92%; overflow-y:auto; text-align:left;
+  }
+  .card-eyebrow{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:4px;}
+  .card h2{ font-family:'Chakra Petch',sans-serif; font-size:19px; margin:0 0 12px; line-height:1.3; color:#fff; }
+
+  /* Quiz options */
+  .quiz-opt{
+    display:block; width:100%; text-align:left; background:var(--panel-2);
+    border:1px solid var(--panel-border); color:var(--ink); padding:11px 13px; border-radius:10px;
+    font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; margin-bottom:8px; cursor:pointer;
+    display:flex; gap:10px; align-items:flex-start; line-height:1.35;
+    transition:background .12s ease;
+  }
+  .quiz-opt .qletter{ font-family:'JetBrains Mono',monospace; color:var(--cyan); font-weight:700; flex-shrink:0;}
+  .quiz-opt:active{ transform:scale(.98); }
+  .quiz-opt.correct{ border-color:var(--cyan); background:rgba(0,255,209,0.14); }
+  .quiz-opt.wrong{ border-color:var(--red); background:rgba(255,51,102,0.14); }
+  .quiz-opt[disabled]{ pointer-events:none; }
+  .quiz-feedback{ font-size:12.5px; color:var(--ink-dim); line-height:1.5; margin:10px 0 14px; padding:10px; background:var(--panel-2); border-radius:8px; border:1px solid var(--panel-border); display:none;}
+  .quiz-feedback.show{ display:block; }
+  .quiz-feedback b{ color:var(--ink); }
+
+  /* Glossary Modal Tabs & Content */
+  .glossary-list{ display:flex; flex-direction:column; gap:8px; max-height:280px; overflow-y:auto; margin-bottom:14px; padding-right:4px;}
+  .glossary-item{ background:var(--panel-2); border:1px solid var(--panel-border); border-radius:10px; padding:10px 12px; }
+  .glossary-item b{ color:var(--cyan); font-size:13px; display:block; margin-bottom:2px; font-family:'Chakra Petch',sans-serif; }
+  .glossary-item p{ margin:0; font-size:12px; color:var(--ink-dim); line-height:1.4; }
+
+  /* Game Over */
+  .go-score{ font-family:'Chakra Petch',sans-serif; font-size:46px; font-weight:700; color:var(--cyan); line-height:1; text-align:center; text-shadow: 0 0 15px rgba(0,255,209,0.4); }
+  .go-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; margin:14px 0;}
+  .go-stat{ background:var(--panel-2); border:1px solid var(--panel-border); border-radius:10px; padding:10px; text-align:left;}
+  .go-stat span{ font-size:9.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:2px;}
+  .go-stat b{ font-family:'JetBrains Mono',monospace; font-size:16px; color:var(--ink); }
+
+  /* High score input */
+  .hs-form{ display:flex; gap:8px; margin:12px 0; }
+  .hs-input{
+    flex:1; background:var(--panel-2); border:1px solid var(--cyan); border-radius:8px;
+    color:#fff; font-family:'JetBrains Mono',monospace; font-size:16px; text-align:center;
+    text-transform:uppercase; padding:8px; letter-spacing:2px;
+  }
+
+  ::-webkit-scrollbar{ width:5px; }
+  ::-webkit-scrollbar-thumb{ background:var(--panel-2); border-radius:8px; border:1px solid var(--panel-border); }
+
+  @media (prefers-reduced-motion: reduce){
+    .hud-title .led{ animation:none; }
+    .toast{ animation:none; }
+    .floater{ animation:none; opacity:0; }
+  }
+</style>
+</head>
+<body>
+<div class="circuit-bg"></div>
+<div class="scanlines"></div>
+<div class="app">
+
+  <!-- ============ START SCREEN ============ -->
+  <div class="screen active" id="screen-start">
+    <div class="eyebrow">Bachillerato Técnico en Informática y Robótica</div>
+    <div class="logo">ANTIPIRATA<span class="dot">.</span>EXE</div>
+    <div class="logo-sub">Sistema de Defensa Activa contra software no autorizado y protección de ciberseguridad.</div>
+
+    <div class="panel-box">
+      <div class="brief-row"><span class="brief-icon">🎯</span><span><b>Misión:</b> Atrapa licencias originales, código abierto y freeware. Bloquea o esquiva cracks, keygens y torrents.</span></div>
+      <div class="brief-row"><span class="brief-icon">⚡</span><span><b>Power-ups:</b> Captura escudos 🛡️, limpiadores de malware 🧹 y multiplicadores x2 ⚡.</span></div>
+      <div class="brief-row"><span class="brief-icon">📡</span><span><b>Retos:</b> Supera los umbrales de puntaje para desbloquear exámenes de conocimiento técnico.</span></div>
+    </div>
+
+    <!-- Difficulty selection -->
+    <div style="width:100%; max-width:440px; text-align:left;">
+      <div style="font-size:10.5px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px;">Nivel de Dificultad</div>
+      <div class="diff-selector">
+        <button class="diff-btn" data-diff="junior">Junior (4 Vidas)</button>
+        <button class="diff-btn active" data-diff="normal">Técnico (3 Vidas)</button>
+        <button class="diff-btn" data-diff="hardcore">Hardcore (2 Vidas)</button>
+      </div>
+    </div>
+
+    <div class="mini-lb" id="miniLbDisplay">🏆 Récord: <span>0 pts</span></div>
+
+    <div class="start-actions">
+      <button class="btn btn-lg btn-primary" id="startBtn">▶ INICIAR MISIÓN</button>
+      <button class="btn btn-ghost" id="glossaryBtn">📚 Base de Datos</button>
+    </div>
+    <div class="start-actions">
+      <button class="btn btn-ghost" id="soundToggleStart" style="font-size:12px; padding:8px 14px;">🔊 Sonido: ON</button>
+    </div>
+    <div class="start-foot mono">v2.0 · Módulo de Ética, Licenciamiento y Ciberseguridad</div>
+  </div>
+
+  <!-- ============ GAME SCREEN ============ -->
+  <div class="screen" id="screen-game">
+    <div class="hud">
+      <div class="hud-title"><span class="led"></span>FIREWALL.SYS</div>
+      <div class="hud-stats">
+        <div class="hud-stat">PUNTO<b id="hudScore" class="mono">0</b></div>
+        <div class="hud-stat">NIVEL<b id="hudLevel" class="mono">1</b></div>
+        <div class="hud-stat">VIDAS<b id="hudLives" class="mono" style="color:var(--red)">♥♥♥</b></div>
+      </div>
+      <div class="hud-btns">
+        <button class="icon-btn" id="muteBtn">🔊</button>
+        <button class="icon-btn" id="pauseBtn">⏸</button>
+      </div>
+    </div>
+    <div class="combo-bar"><div class="combo-fill" id="comboFill"></div></div>
+
+    <div class="play-wrap" id="playWrap">
+      <canvas id="gameCanvas"></canvas>
+      <div class="toast-layer" id="toastLayer"></div>
+    </div>
+
+    <div class="touch-controls">
+      <button class="dpad-btn" id="btnLeft">◀</button>
+      <div class="touch-hint">Arrastra el dedo o usa flechas ◀ ▶</div>
+      <button class="dpad-btn" id="btnRight">▶</button>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ OVERLAY ============ -->
+  <div class="overlay" id="overlay-quiz">
+    <div class="card">
+      <div class="card-eyebrow" id="quizLevelLabel">▲ Auditoría de Nivel</div>
+      <h2 id="quizQuestion">Pregunta</h2>
+      <div id="quizOptions"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <button class="btn btn-primary" style="width:100%; padding:13px; display:none;" id="quizContinueBtn">CONTINUAR MISIÓN ▶</button>
+    </div>
+  </div>
+
+  <!-- ============ GLOSSARY OVERLAY ============ -->
+  <div class="overlay" id="overlay-glossary">
+    <div class="card">
+      <div class="card-eyebrow">Biblioteca de Referencia</div>
+      <h2>📚 Base de Datos Técnica</h2>
+      <div class="glossary-list">
+        <div class="glossary-item">
+          <b>Licencia Original (Propietaria)</b>
+          <p>Concede derecho de uso estipulado por el autor. Garantiza soporte oficial y actualizaciones de seguridad.</p>
+        </div>
+        <div class="glossary-item">
+          <b>Open Source / GPL</b>
+          <p>Código fuente público que permite ejecutar, estudiar, modificar y redistribuir libremente bajo normativas éticas.</p>
+        </div>
+        <div class="glossary-item">
+          <b>Freeware / Shareware</b>
+          <p>Programas gratuitos para uso general o de prueba temporal distribuidos legalmente por los desarrolladores.</p>
+        </div>
+        <div class="glossary-item">
+          <b>Crack & Keygen</b>
+          <p>Herramientas maliciosas diseñadas para vulnerar sistemas de protección, frecuentemente empaquetadas con troyanos y malware.</p>
+        </div>
+        <div class="glossary-item">
+          <b>Torrents Ilegales</b>
+          <p>Canales P2P de distribución no autorizada de software comercial, altamente expuestos a phishing y robo de credenciales.</p>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%; padding:12px;" id="closeGlossaryBtn">VOLVER AL MENÚ</button>
+    </div>
+  </div>
+
+  <!-- ============ PAUSE OVERLAY ============ -->
+  <div class="overlay" id="overlay-pause">
+    <div class="card" style="text-align:center;">
+      <div class="card-eyebrow">Sistema en Pausa</div>
+      <h2>⏸ Control Central</h2>
+      <button class="btn btn-primary btn-lg" style="width:100%; margin-bottom:10px;" id="resumeBtn">▶ Reanudar Misión</button>
+      <button class="btn btn-ghost" style="width:100%;" id="quitBtn">■ Abortar al Menú</button>
+    </div>
+  </div>
+
+  <!-- ============ GAME OVER SCREEN ============ -->
+  <div class="overlay" id="overlay-gameover">
+    <div class="card" style="text-align:center;">
+      <div class="card-eyebrow" style="color:var(--red)">Brecha de Seguridad Detectada</div>
+      <div class="logo" style="font-size:22px; margin-bottom:8px;">SISTEMA COMPROMETIDO</div>
+      <div class="go-score mono" id="goScore">0</div>
+      
+      <div class="go-grid">
+        <div class="go-stat"><span>Nivel</span><b id="goLevel">1</b></div>
+        <div class="go-stat"><span>Software Legal</span><b id="goLegal">0</b></div>
+        <div class="go-stat"><span>Piratería Bloqueada</span><b id="goRejected">0</b></div>
+        <div class="go-stat"><span>Precisión</span><b id="goAccuracy">100%</b></div>
+      </div>
+
+      <div id="highScoreSection" style="display:none; margin-bottom:12px;">
+        <div style="font-size:11px; color:var(--amber); margin-bottom:4px;">¡NUEVO RÉCORD REGISTRADO! Ingresa tus iniciales (3 letras):</div>
+        <div class="hs-form">
+          <input type="text" id="hsInitials" class="hs-input" maxlength="3" value="TEC">
+          <button class="btn btn-primary" id="saveHsBtn">GUARDAR</button>
+        </div>
+      </div>
+
+      <div id="goMessage" class="panel-box" style="margin-bottom:14px; font-size:11.5px; text-align:center;"></div>
+
+      <div class="start-actions" style="width:100%;">
+        <button class="btn btn-primary" style="flex:1; padding:12px;" id="retryBtn">↺ REINTENTAR</button>
+        <button class="btn btn-ghost" style="flex:1; padding:12px;" id="menuBtn">MENÚ</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* =========================================================
+     DATOS EDUCATIVOS Y CONFIGURACIÓN
+  ========================================================= */
+  const LEGAL_ITEMS = [
+    {code:'LIC',  label:'LIC. ORIGINAL'},
+    {code:'GPL',  label:'CÓDIGO ABIERTO'},
+    {code:'FREE', label:'FREEWARE'},
+    {code:'EDU',  label:'LIC. EDUCATIVA'},
+    {code:'SUSC', label:'SUSCRIPCIÓN'}
+  ];
+  const ILLEGAL_ITEMS = [
+    {code:'CRACK',   label:'CRACK.EXE'},
+    {code:'KEYGEN',  label:'KEYGEN.BAT'},
+    {code:'SERIAL',  label:'SERIAL PIRATA'},
+    {code:'TORRENT', label:'TORRENT P2P'},
+    {code:'ILEGAL',  label:'COPIA ILEGAL'}
+  ];
+  const POWERUPS = [
+    {type:'shield', code:'ESCUDO', label:'🛡️ ESCUDO'},
+    {type:'cleaner', code:'CLEAN', label:'🧹 ANTIVIRUS'},
+    {type:'multi', code:'2X', label:'⚡ MULTIPLICADOR'}
+  ];
+
+  const FACTS_GOOD = [
+    'Licencia original: soporte técnico oficial y parches de seguridad garantizados.',
+    'Código abierto: permite estudiar, auditar y aprender del código fuente.',
+    'Freeware: distribución legal y gratuita para uso general o académico.',
+    'El software legítimo previene la inyección de malware en redes corporativas.'
+  ];
+  const FACTS_BAD = [
+    '¡Alerta! Los cracks suelen ocultar troyanos y spyware de control remoto.',
+    'Usar software pirata infringe la Ley de Propiedad Intelectual.',
+    'Falta de parches: el software no verificado es vulnerable a zero-days.',
+    'Riesgo de phishing: sitios de descargas ilegales roban credenciales.'
+  ];
+  const FACTS_REJECTED = [
+    'Amenaza bloqueada por el firewall con éxito.',
+    'Criterio técnico correcto: software pirata evitado.',
+    'Protocolo de ciberseguridad aplicado correctamente.'
+  ];
+
+  const QUIZ_BANK = [
+    {q:'¿Cuál es el principal riesgo de ejecutar un "crack" descargado de un foro dudoso?', a:['Aceleración del procesador','Infección oculta con malware o ransomware','Actualizaciones automáticas del fabricante','Mayor compatibilidad de hardware'], c:1,
+     fb:'Los ejecutables modificados (cracks) frecuentemente transportan cargas maliciosas ocultas.'},
+    {q:'¿Qué define a una licencia de código abierto (Open Source / GPL)?', a:['Que es software robado pero gratis','Que su código fuente es accesible para estudio, mejora y distribución legal','Que no tiene ningún tipo de autor','Que solo funciona sin conexión a internet'], c:1,
+     fb:'El software libre fomenta la transparencia, la auditoría y la colaboración técnica.'},
+    {q:'¿Qué representa legalmente un "Keygen"?', a:['Una herramienta oficial de soporte','Un generador ilegal de números de serie para evadir activación','Un tipo de certificado SSL','Un gestor de contraseñas seguro'], c:1,
+     fb:'Los generadores de claves vulneran los mecanismos de autenticación del fabricante.'},
+    {q:'En un entorno profesional o institucional, ¿qué consecuencias conlleva el uso de software sin licencia?', a:['Reconocimiento de eficiencia','Auditorías legales, sanciones y multas económicas severas','Optimización del sistema operativo','Ninguna repercusión'], c:1,
+     fb:'Las organizaciones enfrentan fuertes penalizaciones por incumplir normativas de licenciamiento.'},
+    {q:'Como futuro técnico en informática, ¿cuál es la práctica ética ante un software desconocido?', a:['Instalarlo desactivando el antivirus','Verificar la procedencia, reputación y tipo de licencia antes de implementarlo','Compartir el instalador en redes sociales','Modificar el binario sin permiso'], c:1,
+     fb:'La verificación rigurosa de fuentes y licencias es un pilar fundamental de la ciberseguridad.'}
+  ];
+  let quizPool = [];
+
+  /* =========================================================
+     AUDIO CHIPTUNE SINTETIZADO (Web Audio API)
+  ========================================================= */
+  const Audio_ = (function(){
+    let ctx = null, master = null, musicGain = null, sfxGain = null;
+    let musicTimer = null, muted = false;
+
+    function ensureCtx(){
+      if(!ctx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(!AC) return null;
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+        musicGain = ctx.createGain(); musicGain.gain.value = 0.14; musicGain.connect(master);
+        sfxGain = ctx.createGain(); sfxGain.gain.value = 0.32; sfxGain.connect(master);
+      }
+      if(ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+
+    function tone(freq, dur, type, gainNode, startAt, vol){
+      const c = ensureCtx(); if(!c) return;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = type || 'square';
+      osc.frequency.value = freq;
+      const t0 = startAt || c.currentTime;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.4, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(gainNode);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
+    }
+
+    const BASS = [110, 110, 146.83, 130.81, 110, 110, 164.81, 146.83];
+    const ARP = [440, 554.37, 659.25, 554.37];
+    let step = 0;
+
+    function musicStep(){
+      const c = ensureCtx(); if(!c || muted) { step++; return; }
+      const t = c.currentTime;
+      tone(BASS[step % BASS.length], 0.2, 'triangle', musicGain, t, 0.45);
+      if(step % 2 === 0){
+        tone(ARP[(step/2|0) % ARP.length], 0.12, 'square', musicGain, t + 0.02, 0.15);
+      }
+      step++;
+    }
+
+    function startMusic(){
+      if(!ensureCtx()) return;
+      if(musicTimer) return;
+      musicStep();
+      musicTimer = setInterval(musicStep, 250);
+    }
+    function stopMusic(){
+      if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
+    }
+    function setMuted(m){
+      muted = m;
+      if(master) master.gain.value = m ? 0 : 1;
+    }
+
+    return {
+      unlock(){ ensureCtx(); },
+      startMusic, stopMusic,
+      toggleMute(){ setMuted(!muted); return muted; },
+      isMuted(){ return muted; },
+      catchGood(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(784,0.08,'square',sfxGain,t,0.3); tone(1174.66,0.12,'square',sfxGain,t+0.05,0.28); },
+      catchBad(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(140,0.2,'sawtooth',sfxGain,t,0.35); },
+      reject(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(587.33,0.07,'triangle',sfxGain,t,0.2); },
+      powerup(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.1,'square',sfxGain,t+i*0.05,0.25)); },
+      gameOver(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [330,277.18,220,164.81].forEach((f,i)=>tone(f,0.25,'sawtooth',sfxGain,t+i*0.14,0.3)); },
+      click(){ const c=ensureCtx(); if(!c) return; tone(600,0.04,'square',sfxGain,c.currentTime,0.15); },
+      quizRight(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [587.33,880].forEach((f,i)=>tone(f,0.15,'triangle',sfxGain,t+i*0.08,0.3)); },
+      quizWrong(){ const c=ensureCtx(); if(!c) return; tone(165,0.25,'sawtooth',sfxGain,c.currentTime,0.28); }
+    };
+  })();
+
+  /* =========================================================
+     ESTADO DEL JUEGO Y LEADERBOARD
+  ========================================================= */
+  const LB_KEY = 'antipirata_leaderboard_v2';
+  let leaderboards = JSON.parse(localStorage.getItem(LB_KEY) || '[]');
+
+  let difficultyConfig = {
+    junior: { lives: 4, speedFactor: 0.85, spawnRate: 1250 },
+    normal: { lives: 3, speedFactor: 1.0, spawnRate: 1100 },
+    hardcore: { lives: 2, speedFactor: 1.25, spawnRate: 950 }
+  };
+  let currentDiff = 'normal';
+
+  const state = {
+    running:false, paused:false,
+    score:0, level:1, lives:3, maxLives:5,
+    combo:0, multiplier:1,
+    legalCaught:0, rejected:0, itemsSpawnedTotal:0, itemsCaughtTotal:0,
+    nextLevelAt:120,
+    spawnInterval:1100, fallSpeed:1.3,
+    lastSpawn:0,
+    shieldUntil:0, multiUntil:0
+  };
+
+  let items = [];
+
+  /* =========================================================
+     CANVAS Y REDIMENSIONAMIENTO
+  ========================================================= */
+  const canvas = document.getElementById('gameCanvas');
+  const ctx2d = canvas.getContext('2d');
+  const playWrap = document.getElementById('playWrap');
+  let W = 0, H = 0, DPR = 1;
+
+  function resizeCanvas(){
+    const rect = playWrap.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = rect.width; H = rect.height;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx2d.setTransform(DPR,0,0,DPR,0,0);
+    paddle.y = H - 74;
+    paddle.x = Math.min(paddle.x, W - paddle.w);
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  /* =========================================================
+     PADDLE (FIREWALL)
+  ========================================================= */
+  const paddle = { x:120, y:0, w:92, h:24, targetX:120, led:0, ledColor:'cyan' };
+
+  function movePaddleTo(px){
+    paddle.targetX = Math.max(0, Math.min(W - paddle.w, px - paddle.w/2));
+  }
+
+  let dragging = false;
+  playWrap.addEventListener('pointerdown', (e)=>{
+    dragging = true;
+    const r = playWrap.getBoundingClientRect();
+    movePaddleTo(e.clientX - r.left);
+  });
+  window.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    const r = playWrap.getBoundingClientRect();
+    movePaddleTo(e.clientX - r.left);
+  });
+  window.addEventListener('pointerup', ()=>{ dragging = false; });
+
+  let heldDir = 0;
+  function bindHold(el, dir){
+    const start = (e)=>{ e.preventDefault(); heldDir = dir; };
+    const end = ()=>{ if(heldDir===dir) heldDir = 0; };
+    el.addEventListener('pointerdown', start);
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointerleave', end);
+    el.addEventListener('pointercancel', end);
+  }
+  bindHold(document.getElementById('btnLeft'), -1);
+  bindHold(document.getElementById('btnRight'), 1);
+
+  window.addEventListener('keydown', (e)=>{
+    if(!state.running || state.paused) return;
+    if(e.key==='ArrowLeft' || e.key==='a') heldDir = -1;
+    if(e.key==='ArrowRight' || e.key==='d') heldDir = 1;
+  });
+  window.addEventListener('keyup', (e)=>{
+    if(['ArrowLeft','a','ArrowRight','d'].includes(e.key)) heldDir = 0;
+  });
+
+  /* =========================================================
+     SPAWN DE ITEMS Y POWER-UPS
+  ========================================================= */
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function spawnItem(){
+    state.itemsSpawnedTotal++;
+    const roll = Math.random();
+    let type, data;
+    if(roll < 0.08 && state.level >= 2){
+      const pw = pick(POWERUPS);
+      type = pw.type; data = {code:pw.code, label:pw.label};
+    } else if(roll < 0.52){
+      type = 'legal'; data = pick(LEGAL_ITEMS);
+    } else {
+      type = 'illegal'; data = pick(ILLEGAL_ITEMS);
+    }
+    const w = 76;
+    items.push({
+      type, code:data.code, label:data.label,
+      x: Math.random()*(W - w) + w/2,
+      y: -30,
+      w, h:42,
+      vy: state.fallSpeed * (0.85 + Math.random()*0.35),
+      caught:false, wobble: Math.random()*Math.PI*2
+    });
+  }
+
+  /* =========================================================
+     NOTIFICACIONES TOAST Y FLOATERS
+  ========================================================= */
+  const toastLayer = document.getElementById('toastLayer');
+  function showToast(msg, kind){
+    const el = document.createElement('div');
+    el.className = 'toast ' + (kind||'');
+    el.textContent = msg;
+    toastLayer.appendChild(el);
+    setTimeout(()=>{ el.remove(); }, 2200);
+    while(toastLayer.children.length > 2){ toastLayer.removeChild(toastLayer.firstChild); }
+  }
+  function showFloater(text, x, y, color){
+    const el = document.createElement('div');
+    el.className = 'floater';
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = color;
+    playWrap.appendChild(el);
+    setTimeout(()=>el.remove(), 750);
+  }
+
+  /* =========================================================
+     HUD Y RENDERO
+  ========================================================= */
+  const hudScore = document.getElementById('hudScore');
+  const hudLevel = document.getElementById('hudLevel');
+  const hudLives = document.getElementById('hudLives');
+  const comboFill = document.getElementById('comboFill');
+
+  function renderHUD(){
+    hudScore.textContent = state.score;
+    hudLevel.textContent = state.level;
+    hudLives.textContent = '♥'.repeat(state.lives);
+    const pct = Math.min(100, (state.combo % 5) / 5 * 100);
+    comboFill.style.width = (state.combo>0 ? pct : 0) + '%';
+  }
+
+  /* =========================================================
+     LÓGICA DE JUEGO Y COLISIONES
+  ========================================================= */
+  function onCatchLegal(item){
+    state.itemsCaughtTotal++;
+    state.combo++;
+    if(state.combo>0 && state.combo % 5 === 0 && state.multiplier < 4) state.multiplier++;
+    const mult = Date.now() < state.multiUntil ? 2 : 1;
+    const pts = 10 * state.multiplier * mult;
+    state.score += pts;
+    state.legalCaught++;
+    Audio_.catchGood();
+    showFloater('+'+pts, item.x, item.y, 'var(--cyan)');
+    paddle.ledColor = 'cyan'; paddle.led = 1;
+    if(Math.random() < 0.5) showToast('✅ ' + pick(FACTS_GOOD), 'good');
+    checkLevelUp();
+  }
+
+  function onCatchIllegal(item){
+    if(Date.now() < state.shieldUntil){
+      showFloater('🛡 ESCUDO BLOQUEÓ', item.x, item.y, 'var(--violet)');
+      Audio_.reject();
+      return;
+    }
+    state.combo = 0; state.multiplier = 1;
+    state.lives--;
+    Audio_.catchBad();
+    showFloater('-1 VIDA', item.x, item.y, 'var(--red)');
+    paddle.ledColor = 'red'; paddle.led = 1;
+    showToast('⚠️ ' + pick(FACTS_BAD), 'bad');
+    renderHUD();
+    if(state.lives <= 0) return endGame();
+  }
+
+  function onCatchPowerup(item){
+    Audio_.powerup();
+    if(item.type === 'shield'){
+      state.shieldUntil = Date.now() + 6500;
+      showFloater('🛡 ESCUDO ACTIVO', item.x, item.y, 'var(--violet)');
+      showToast('🛡️ Firewall blindado contra brechas durante 6.5s', 'good');
+    } else if(item.type === 'cleaner'){
+      // Elimina todos los elementos ilegales en pantalla
+      let cleared = 0;
+      items = items.filter(it => {
+        if(it.type === 'illegal') { cleared++; return false; }
+        return true;
+      });
+      state.score += cleared * 15;
+      showFloater('🧹 LIMPIEZA DE MALWARE (-'+cleared+')', W/2, H/2, 'var(--amber)');
+      showToast('🧹 Antivirus ejecutado: ' + cleared + ' amenazas eliminadas del sistema.', 'good');
+    } else if(item.type === 'multi'){
+      state.multiUntil = Date.now() + 7000;
+      showFloater('⚡ PUNTOS 2X', item.x, item.y, 'var(--amber)');
+      showToast('⚡ Multiplicador 2X activo por 7 segundos.', 'good');
+    }
+  }
+
+  function onMissLegal(){
+    state.combo = 0; state.multiplier = 1;
+  }
+  function onPassIllegal(item){
+    state.rejected++;
+    state.score += 5;
+    Audio_.reject();
+    showFloater('+5', item.x, H-80, 'var(--amber)');
+    if(Math.random() < 0.3) showToast('👍 ' + pick(FACTS_REJECTED), 'good');
+  }
+
+  function checkLevelUp(){
+    if(state.score >= state.nextLevelAt){
+      openQuiz();
+    }
+  }
+
+  /* =========================================================
+     QUIZ EDUCATIVO
+  ========================================================= */
+  const overlayQuiz = document.getElementById('overlay-quiz');
+  const quizQuestion = document.getElementById('quizQuestion');
+  const quizOptions = document.getElementById('quizOptions');
+  const quizFeedback = document.getElementById('quizFeedback');
+  const quizContinueBtn = document.getElementById('quizContinueBtn');
+  const quizLevelLabel = document.getElementById('quizLevelLabel');
+
+  function nextQuizQuestion(){
+    if(quizPool.length === 0) quizPool = QUIZ_BANK.slice();
+    const idx = Math.floor(Math.random()*quizPool.length);
+    return quizPool.splice(idx,1)[0];
+  }
+
+  function openQuiz(){
+    state.paused = true;
+    const q = nextQuizQuestion();
+    quizLevelLabel.textContent = '▲ Auditoría de Nivel ' + state.level + ' superada';
+    quizQuestion.textContent = q.q;
+    quizOptions.innerHTML = '';
+    quizFeedback.classList.remove('show');
+    quizContinueBtn.style.display = 'none';
+    const letters = ['A','B','C','D'];
+    q.a.forEach((opt, i)=>{
+      const b = document.createElement('button');
+      b.className = 'quiz-opt';
+      b.innerHTML = '<span class="qletter">'+letters[i]+'</span><span>'+opt+'</span>';
+      b.addEventListener('click', ()=> answerQuiz(b, i, q));
+      quizOptions.appendChild(b);
+    });
+    overlayQuiz.classList.add('show');
+  }
+
+  function answerQuiz(btn, i, q){
+    const opts = quizOptions.querySelectorAll('.quiz-opt');
+    opts.forEach(o=>o.setAttribute('disabled','true'));
+    const correct = (i === q.c);
+    opts[q.c].classList.add('correct');
+    if(!correct) btn.classList.add('wrong');
+    quizFeedback.innerHTML = (correct ? '<b>✅ ¡Correcto!</b> ' : '<b>❌ Incorrecto.</b> ') + q.fb;
+    quizFeedback.classList.add('show');
+    quizContinueBtn.style.display = 'block';
+    if(correct){
+      Audio_.quizRight();
+      state.score += 35;
+      if(state.level % 2 === 0 && state.lives < state.maxLives) state.lives++;
+    } else {
+      Audio_.quizWrong();
+    }
+    renderHUD();
+  }
+
+  quizContinueBtn.addEventListener('click', ()=>{
+    Audio_.click();
+    overlayQuiz.classList.remove('show');
+    levelUp();
+    state.paused = false;
+  });
+
+  function levelUp(){
+    state.level++;
+    state.nextLevelAt = state.score + 140 + (state.level-1)*60;
+    state.fallSpeed = Math.min(state.fallSpeed + 0.15, 4.0);
+    state.spawnInterval = Math.max(state.spawnInterval - 45, 460);
+    renderHUD();
+  }
+
+  /* =========================================================
+     LOOP PRINCIPAL DEL JUEGO
+  ========================================================= */
+  const COLORS = {
+    legal:{ fill:'rgba(0,255,209,0.15)', border:'#00FFD1', text:'#E0FFFB' },
+    illegal:{ fill:'rgba(255,51,102,0.14)', border:'#FF3366', text:'#FFE1E7' },
+    shield:{ fill:'rgba(157,78,221,0.2)', border:'#9D4EDD', text:'#F3E8FF' },
+    cleaner:{ fill:'rgba(255,183,3,0.18)', border:'#FFB703', text:'#FFF8E7' },
+    multi:{ fill:'rgba(0,255,209,0.25)', border:'#00FFD1', text:'#E0FFFB' }
+  };
+
+  let scanY = 0;
+  let lastTime = 0;
+  let rafId = null;
+
+  function loop(t){
+    if(!state.running) return;
+    const dt = Math.min(t - lastTime, 50) || 16;
+    lastTime = t;
+
+    if(!state.paused){
+      update(dt, t);
+    }
+    draw(t);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function update(dt, t){
+    if(heldDir !== 0){ paddle.targetX += heldDir * 0.65 * dt; }
+    paddle.targetX = Math.max(0, Math.min(W - paddle.w, paddle.targetX));
+    paddle.x += (paddle.targetX - paddle.x) * 0.38;
+    if(paddle.led > 0) paddle.led -= dt/280;
+
+    state.lastSpawn += dt;
+    if(state.lastSpawn > state.spawnInterval){
+      state.lastSpawn = 0;
+      spawnItem();
+    }
+
+    const pyTop = paddle.y, pyBot = paddle.y + paddle.h;
+    for(let i=items.length-1; i>=0; i--){
+      const it = items[i];
+      it.y += it.vy * (dt/16.7);
+      it.wobble += dt/450;
+      const ix = it.x + Math.sin(it.wobble)*4;
+
+      const overlapX = (ix + it.w/2 > paddle.x) && (ix - it.w/2 < paddle.x + paddle.w);
+      const overlapY = (it.y + it.h/2 > pyTop) && (it.y - it.h/2 < pyBot);
+
+      if(!it.caught && overlapX && overlapY){
+        it.caught = true;
+        if(it.type === 'legal') onCatchLegal(it);
+        else if(it.type === 'illegal') onCatchIllegal(it);
+        else onCatchPowerup(it);
+        renderHUD();
+        items.splice(i,1);
+        continue;
+      }
+      if(it.y - it.h/2 > H){
+        if(it.type === 'legal') onMissLegal();
+        else if(it.type === 'illegal') onPassIllegal(it);
+        renderHUD();
+        items.splice(i,1);
+      }
+    }
+
+    scanY += dt * 0.12;
+    if(scanY > H + 40) scanY = -40;
+  }
+
+  function drawCircuitGrid(){
+    ctx2d.save();
+    ctx2d.strokeStyle = 'rgba(0,255,209,0.035)';
+    ctx2d.lineWidth = 1;
+    const step = 32;
+    for(let x=0; x<W; x+=step){ ctx2d.beginPath(); ctx2d.moveTo(x,0); ctx2d.lineTo(x,H); ctx2d.stroke(); }
+    for(let y=0; y<H; y+=step){ ctx2d.beginPath(); ctx2d.moveTo(0,y); ctx2d.lineTo(W,y); ctx2d.stroke(); }
+    ctx2d.restore();
+  }
+
+  function drawScanLine(){
+    const grad = ctx2d.createLinearGradient(0, scanY-16, 0, scanY+16);
+    grad.addColorStop(0, 'rgba(0,255,209,0)');
+    grad.addColorStop(0.5, 'rgba(0,255,209,0.08)');
+    grad.addColorStop(1, 'rgba(0,255,209,0)');
+    ctx2d.fillStyle = grad;
+    ctx2d.fillRect(0, scanY-16, W, 32);
+  }
+
+  function drawItem(it){
+    const ix = it.x + Math.sin(it.wobble)*4;
+    const c = COLORS[it.type];
+    ctx2d.save();
+    ctx2d.translate(ix, it.y);
+    ctx2d.fillStyle = c.fill;
+    ctx2d.strokeStyle = c.border;
+    ctx2d.lineWidth = 2;
+    roundRect(ctx2d, -it.w/2, -it.h/2, it.w, it.h, 8);
+    ctx2d.fill(); ctx2d.stroke();
+    ctx2d.fillStyle = c.border;
+    ctx2d.font = '700 14px "Chakra Petch", sans-serif';
+    ctx2d.textAlign = 'center'; ctx2d.textBaseline = 'middle';
+    let icon = '✓';
+    if(it.type === 'illegal') icon = '✕';
+    else if(it.type === 'shield') icon = '🛡';
+    else if(it.type === 'cleaner') icon = '🧹';
+    else if(it.type === 'multi') icon = '⚡';
+    ctx2d.fillText(icon, 0, -6);
+    ctx2d.fillStyle = c.text;
+    ctx2d.font = '600 8px "JetBrains Mono", monospace';
+    ctx2d.fillText(it.label, 0, 11);
+    ctx2d.restore();
+  }
+
+  function roundRect(c, x, y, w, h, r){
+    c.beginPath();
+    c.moveTo(x+r,y);
+    c.arcTo(x+w,y,x+w,y+h,r);
+    c.arcTo(x+w,y+h,x,y+h,r);
+    c.arcTo(x,y+h,x,y,r);
+    c.arcTo(x,y,x+w,y,r);
+    c.closePath();
+  }
+
+  function drawPaddle(){
+    const shielded = Date.now() < state.shieldUntil;
+    ctx2d.save();
+    ctx2d.translate(paddle.x + paddle.w/2, paddle.y + paddle.h/2);
+    const glowColor = shielded ? '#9D4EDD' : (paddle.led>0 ? (paddle.ledColor==='red' ? '#FF3366' : '#00FFD1') : '#00FFD1');
+    ctx2d.shadowColor = glowColor; ctx2d.shadowBlur = shielded ? 20 : 12;
+    ctx2d.fillStyle = 'rgba(13,24,46,0.95)';
+    ctx2d.strokeStyle = glowColor;
+    ctx2d.lineWidth = 2.5;
+    roundRect(ctx2d, -paddle.w/2, -paddle.h/2, paddle.w, paddle.h, 11);
+    ctx2d.fill(); ctx2d.stroke();
+
+    ctx2d.shadowBlur = 0;
+    ctx2d.beginPath();
+    ctx2d.fillStyle = glowColor;
+    ctx2d.arc(0, -paddle.h/2+2, 2.5, 0, Math.PI*2);
+    ctx2d.fill();
+
+    ctx2d.fillStyle = 'rgba(226,232,240,0.9)';
+    ctx2d.font = '700 9.5px "JetBrains Mono", monospace';
+    ctx2d.textAlign = 'center'; ctx2d.textBaseline = 'middle';
+    ctx2d.fillText('FIREWALL', 0, 2);
+    ctx2d.restore();
+  }
+
+  function draw(t){
+    ctx2d.clearRect(0,0,W,H);
+    drawCircuitGrid();
+    drawScanLine();
+    for(const it of items) drawItem(it);
+    drawPaddle();
+  }
+
+  /* =========================================================
+     FLUJO DE PANTALLAS Y GAMEOVER
+  ========================================================= */
+  const screens = {
+    start: document.getElementById('screen-start'),
+    game: document.getElementById('screen-game')
+  };
+  function showScreen(name){
+    Object.values(screens).forEach(s=>s.classList.remove('active'));
+    if(screens[name]) screens[name].classList.add('active');
+  }
+
+  function resetState(){
+    const cfg = difficultyConfig[currentDiff];
+    state.running = true; state.paused = false;
+    state.score = 0; state.level = 1; state.lives = cfg.lives; state.maxLives = cfg.lives + 2;
+    state.combo = 0; state.multiplier = 1;
+    state.legalCaught = 0; state.rejected = 0; state.itemsSpawnedTotal = 0; state.itemsCaughtTotal = 0;
+    state.nextLevelAt = 120;
+    state.spawnInterval = cfg.spawnRate; state.fallSpeed = 1.2 * cfg.speedFactor;
+    state.lastSpawn = 300; state.shieldUntil = 0; state.multiUntil = 0;
+    items = []; quizPool = QUIZ_BANK.slice();
+    paddle.x = 120; paddle.targetX = 120;
+  }
+
+  function startGame(){
+    Audio_.unlock();
+    Audio_.click();
+    resetState();
+    showScreen('game');
+    resizeCanvas();
+    renderHUD();
+    lastTime = performance.now();
+    if(!Audio_.isMuted()) Audio_.startMusic();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  const overlayGameover = document.getElementById('overlay-gameover');
+
+  function endGame(){
+    state.running = false;
+    Audio_.stopMusic();
+    Audio_.gameOver();
+    if(rafId) cancelAnimationFrame(rafId);
+
+    document.getElementById('goScore').textContent = state.score;
+    document.getElementById('goLevel').textContent = state.level;
+    document.getElementById('goLegal').textContent = state.legalCaught;
+    document.getElementById('goRejected').textContent = state.rejected;
+    const acc = state.itemsSpawnedTotal > 0 ? Math.round((state.itemsCaughtTotal / state.itemsSpawnedTotal)*100) : 100;
+    document.getElementById('goAccuracy').textContent = acc + '%';
+
+    const msgs = [
+      'Análisis completado: Mantener la red protegida de software no licenciado previene incidentes graves de ciberseguridad.',
+      'Excelente labor técnica. La integridad del software es pilar clave en cualquier infraestructura informática.'
+    ];
+    document.getElementById('goMessage').textContent = pick(msgs);
+
+    // Verificar si califica en leaderboard top 3
+    const qualifies = leaderboards.length < 3 || state.score > leaderboards[leaderboards.length-1].score;
+    const hsSec = document.getElementById('highScoreSection');
+    if(qualifies && state.score > 0){
+      hsSec.style.display = 'block';
+    } else {
+      hsSec.style.display = 'none';
+    }
+
+    overlayGameover.classList.add('show');
+  }
+
+  document.getElementById('saveHsBtn').addEventListener('click', ()=>{
+    const initials = (document.getElementById('hsInitials').value || 'TEC').toUpperCase().slice(0,3);
+    leaderboards.push({ initials, score: state.score });
+    leaderboards.sort((a,b)=>b.score - a.score);
+    if(leaderboards.length > 3) leaderboards = leaderboards.slice(0,3);
+    localStorage.setItem(LB_KEY, JSON.stringify(leaderboards));
+    document.getElementById('highScoreSection').style.display = 'none';
+    updateLeaderboardDisplay();
+    Audio_.click();
+  });
+
+  function updateLeaderboardDisplay(){
+    const top = leaderboards[0];
+    const el = document.getElementById('miniLbDisplay');
+    if(top){
+      el.innerHTML = `🏆 Récord: <span>${top.score} pts (${top.initials})</span>`;
+    } else {
+      el.innerHTML = `🏆 Récord: <span>0 pts</span>`;
+    }
+  }
+  updateLeaderboardDisplay();
+
+  /* ---- Event Listeners Botones y Modales ---- */
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('retryBtn').addEventListener('click', ()=>{
+    overlayGameover.classList.remove('show');
+    startGame();
+  });
+  document.getElementById('menuBtn').addEventListener('click', ()=>{
+    overlayGameover.classList.remove('show');
+    showScreen('start');
+    updateLeaderboardDisplay();
+  });
+
+  // Dificultad
+  document.querySelectorAll('.diff-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+      e.target.classList.add('active');
+      currentDiff = e.target.getAttribute('data-diff');
+      Audio_.click();
+    });
+  });
+
+  // Glosario
+  const overlayGlossary = document.getElementById('overlay-glossary');
+  document.getElementById('glossaryBtn').addEventListener('click', ()=>{
+    Audio_.click();
+    overlayGlossary.classList.add('show');
+  });
+  document.getElementById('closeGlossaryBtn').addEventListener('click', ()=>{
+    Audio_.click();
+    overlayGlossary.classList.remove('show');
+  });
+
+  // Pausa
+  const overlayPause = document.getElementById('overlay-pause');
+  document.getElementById('pauseBtn').addEventListener('click', ()=>{
+    if(!state.running) return;
+    state.paused = true;
+    Audio_.click();
+    overlayPause.classList.add('show');
+  });
+  document.getElementById('resumeBtn').addEventListener('click', ()=>{
+    state.paused = false;
+    overlayPause.classList.remove('show');
+    Audio_.click();
+  });
+  document.getElementById('quitBtn').addEventListener('click', ()=>{
+    state.running = false;
+    Audio_.stopMusic();
+    if(rafId) cancelAnimationFrame(rafId);
+    overlayPause.classList.remove('show');
+    showScreen('start');
+    updateLeaderboardDisplay();
+  });
+
+  function toggleMuteUI(){
+    const muted = Audio_.toggleMute();
+    document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+    document.getElementById('soundToggleStart').textContent = muted ? '🔇 Sonido: OFF' : '🔊 Sonido: ON';
+    if(muted) Audio_.stopMusic(); else if(state.running) Audio_.startMusic();
+  }
+  document.getElementById('muteBtn').addEventListener('click', toggleMuteUI);
+  document.getElementById('soundToggleStart').addEventListener('click', ()=>{ Audio_.unlock(); toggleMuteUI(); });
+
+  document.addEventListener('gesturestart', (e)=>e.preventDefault());
+
+  resizeCanvas();
+})();
+</script>
+</body>
+</html>
