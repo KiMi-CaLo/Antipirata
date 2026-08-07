@@ -287,7 +287,17 @@
     <div class="start-actions">
       <button class="btn btn-ghost" id="soundToggleStart" style="font-size:12px; padding:8px 14px;">🔊 Sonido: ON</button>
     </div>
-    <div class="start-foot mono">v2.0 · Módulo de Ética, Licenciamiento y Ciberseguridad</div>
+    <div style="width:100%; max-width:440px; display:flex; flex-direction:column; gap:6px; text-align:left;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:10.5px; color:var(--ink-dim); width:60px; flex-shrink:0;">🎵 Música</span>
+        <input type="range" id="musicVolRange" min="0" max="100" value="16" style="flex:1; accent-color:var(--cyan);">
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:10.5px; color:var(--ink-dim); width:60px; flex-shrink:0;">🔊 Efectos</span>
+        <input type="range" id="sfxVolRange" min="0" max="100" value="34" style="flex:1; accent-color:var(--cyan);">
+      </div>
+    </div>
+    <div class="start-foot mono">v3.0 · Módulo de Ética, Licenciamiento y Ciberseguridad</div>
   </div>
 
   <!-- ============ GAME SCREEN ============ -->
@@ -415,19 +425,30 @@
     {code:'GPL',  label:'CÓDIGO ABIERTO'},
     {code:'FREE', label:'FREEWARE'},
     {code:'EDU',  label:'LIC. EDUCATIVA'},
-    {code:'SUSC', label:'SUSCRIPCIÓN'}
+    {code:'SUSC', label:'SUSCRIPCIÓN'},
+    {code:'MIT',  label:'LIC. MIT'},
+    {code:'APAC', label:'LIC. APACHE 2.0'},
+    {code:'DONW', label:'DONATIONWARE'},
+    {code:'TRIAL',label:'PRUEBA OFICIAL'},
+    {code:'CLOUD',label:'SaaS OFICIAL'}
   ];
   const ILLEGAL_ITEMS = [
     {code:'CRACK',   label:'CRACK.EXE'},
     {code:'KEYGEN',  label:'KEYGEN.BAT'},
     {code:'SERIAL',  label:'SERIAL PIRATA'},
     {code:'TORRENT', label:'TORRENT P2P'},
-    {code:'ILEGAL',  label:'COPIA ILEGAL'}
+    {code:'ILEGAL',  label:'COPIA ILEGAL'},
+    {code:'RANSOM',  label:'RANSOMWARE'},
+    {code:'TROJAN',  label:'TROYANO'},
+    {code:'PHISH',   label:'SITIO PHISHING'},
+    {code:'BOTNET',  label:'RED BOTNET'},
+    {code:'WAREZ',   label:'PORTAL WAREZ'}
   ];
   const POWERUPS = [
     {type:'shield', code:'ESCUDO', label:'🛡️ ESCUDO'},
     {type:'cleaner', code:'CLEAN', label:'🧹 ANTIVIRUS'},
-    {type:'multi', code:'2X', label:'⚡ MULTIPLICADOR'}
+    {type:'multi', code:'2X', label:'⚡ MULTIPLICADOR'},
+    {type:'slow', code:'SLOW', label:'🐢 RALENTIZAR'}
   ];
 
   const FACTS_GOOD = [
@@ -448,26 +469,74 @@
     'Protocolo de ciberseguridad aplicado correctamente.'
   ];
 
+  /* Cada pregunta tiene "t" (tier/dificultad 1-3). Niveles bajos usan tier 1,
+     niveles intermedios mezclan tier 1-2, niveles altos priorizan tier 2-3. */
   const QUIZ_BANK = [
-    {q:'¿Cuál es el principal riesgo de ejecutar un "crack" descargado de un foro dudoso?', a:['Aceleración del procesador','Infección oculta con malware o ransomware','Actualizaciones automáticas del fabricante','Mayor compatibilidad de hardware'], c:1,
+    // ---- TIER 1: Fundamentos ----
+    {t:1, q:'¿Cuál es el principal riesgo de ejecutar un "crack" descargado de un foro dudoso?', a:['Aceleración del procesador','Infección oculta con malware o ransomware','Actualizaciones automáticas del fabricante','Mayor compatibilidad de hardware'], c:1,
      fb:'Los ejecutables modificados (cracks) frecuentemente transportan cargas maliciosas ocultas.'},
-    {q:'¿Qué define a una licencia de código abierto (Open Source / GPL)?', a:['Que es software robado pero gratis','Que su código fuente es accesible para estudio, mejora y distribución legal','Que no tiene ningún tipo de autor','Que solo funciona sin conexión a internet'], c:1,
+    {t:1, q:'¿Qué define a una licencia de código abierto (Open Source / GPL)?', a:['Que es software robado pero gratis','Que su código fuente es accesible para estudio, mejora y distribución legal','Que no tiene ningún tipo de autor','Que solo funciona sin conexión a internet'], c:1,
      fb:'El software libre fomenta la transparencia, la auditoría y la colaboración técnica.'},
-    {q:'¿Qué representa legalmente un "Keygen"?', a:['Una herramienta oficial de soporte','Un generador ilegal de números de serie para evadir activación','Un tipo de certificado SSL','Un gestor de contraseñas seguro'], c:1,
+    {t:1, q:'¿Qué representa legalmente un "Keygen"?', a:['Una herramienta oficial de soporte','Un generador ilegal de números de serie para evadir activación','Un tipo de certificado SSL','Un gestor de contraseñas seguro'], c:1,
      fb:'Los generadores de claves vulneran los mecanismos de autenticación del fabricante.'},
-    {q:'En un entorno profesional o institucional, ¿qué consecuencias conlleva el uso de software sin licencia?', a:['Reconocimiento de eficiencia','Auditorías legales, sanciones y multas económicas severas','Optimización del sistema operativo','Ninguna repercusión'], c:1,
+    {t:1, q:'¿Qué es el "freeware"?', a:['Software gratuito distribuido legalmente por su autor','Software pirata sin costo','Un virus disfrazado de programa','Un tipo de licencia educativa exclusiva'], c:0,
+     fb:'El freeware se distribuye sin costo pero conserva derechos de autor y condiciones de uso legítimas.'},
+    {t:1, q:'¿Por qué es importante mantener actualizado el sistema operativo?', a:['Porque ocupa más espacio','Porque corrige vulnerabilidades de seguridad conocidas','Porque cambia el idioma automáticamente','No es importante'], c:1,
+     fb:'Las actualizaciones (parches) cierran brechas de seguridad explotadas por atacantes.'},
+    {t:1, q:'¿Qué caracteriza a una contraseña segura?', a:['Ser corta y fácil de recordar','Usar el mismo patrón en todos los sitios','Combinar longitud, símbolos, mayúsculas y ser única por servicio','Ser el nombre del usuario'], c:2,
+     fb:'La longitud y unicidad dificultan ataques de fuerza bruta y reducen el impacto de filtraciones.'},
+    {t:1, q:'¿Qué es el "phishing"?', a:['Un antivirus gratuito','Un intento de engaño para robar credenciales o datos personales','Un protocolo de red seguro','Una licencia de prueba'], c:1,
+     fb:'El phishing suplanta identidad (correos, sitios falsos) para robar información sensible.'},
+    // ---- TIER 2: Intermedio ----
+    {t:2, q:'En un entorno profesional o institucional, ¿qué consecuencias conlleva el uso de software sin licencia?', a:['Reconocimiento de eficiencia','Auditorías legales, sanciones y multas económicas severas','Optimización del sistema operativo','Ninguna repercusión'], c:1,
      fb:'Las organizaciones enfrentan fuertes penalizaciones por incumplir normativas de licenciamiento.'},
-    {q:'Como futuro técnico en informática, ¿cuál es la práctica ética ante un software desconocido?', a:['Instalarlo desactivando el antivirus','Verificar la procedencia, reputación y tipo de licencia antes de implementarlo','Compartir el instalador en redes sociales','Modificar el binario sin permiso'], c:1,
-     fb:'La verificación rigurosa de fuentes y licencias es un pilar fundamental de la ciberseguridad.'}
+    {t:2, q:'Como futuro técnico en informática, ¿cuál es la práctica ética ante un software desconocido?', a:['Instalarlo desactivando el antivirus','Verificar la procedencia, reputación y tipo de licencia antes de implementarlo','Compartir el instalador en redes sociales','Modificar el binario sin permiso'], c:1,
+     fb:'La verificación rigurosa de fuentes y licencias es un pilar fundamental de la ciberseguridad.'},
+    {t:2, q:'¿Qué diferencia principal existe entre la licencia MIT y la GPL?', a:['MIT es más permisiva y GPL exige compartir el código derivado bajo la misma licencia','Ambas son idénticas','MIT prohíbe el uso comercial','GPL no permite ver el código fuente'], c:0,
+     fb:'GPL es "copyleft" (obliga a heredar la licencia); MIT es permisiva y flexible para reutilizar el código.'},
+    {t:2, q:'¿Qué es el "ransomware"?', a:['Software que cifra archivos y exige un pago por su rescate','Un programa antivirus premium','Una licencia de renta de software','Un tipo de backup automático'], c:0,
+     fb:'El ransomware secuestra la información de la víctima cifrándola hasta recibir un pago.'},
+    {t:2, q:'¿Cuál es la función principal de la autenticación de dos factores (2FA)?', a:['Acelerar el inicio de sesión','Agregar una capa extra de verificación además de la contraseña','Reemplazar la necesidad de contraseñas','Cifrar el disco duro'], c:1,
+     fb:'2FA reduce el riesgo de acceso no autorizado aunque la contraseña sea robada.'},
+    {t:2, q:'¿Qué buena práctica reduce el impacto de un ataque de ransomware?', a:['Desactivar el firewall','Mantener copias de seguridad (backups) periódicas y aisladas','Usar la misma contraseña en todos los sistemas','Evitar actualizar el software'], c:1,
+     fb:'Los backups periódicos y desconectados permiten restaurar información sin pagar rescate.'},
+    {t:2, q:'¿Qué es la ingeniería social en ciberseguridad?', a:['Diseñar redes sociales corporativas','Manipular psicológicamente a personas para obtener acceso o información','Un lenguaje de programación','Un tipo de licencia de software'], c:1,
+     fb:'La ingeniería social explota la confianza humana en lugar de vulnerabilidades técnicas.'},
+    // ---- TIER 3: Avanzado ----
+    {t:3, q:'¿Qué principio de seguridad establece otorgar solo los permisos estrictamente necesarios a un usuario o proceso?', a:['Principio de redundancia','Principio de mínimo privilegio','Principio de máxima disponibilidad','Principio de licencia abierta'], c:1,
+     fb:'El mínimo privilegio limita el daño potencial si una cuenta o proceso es comprometido.'},
+    {t:3, q:'¿Qué distingue a un ataque de "día cero" (zero-day)?', a:['Explota una vulnerabilidad ya parchada hace años','Explota una vulnerabilidad desconocida para la cual aún no existe parche','Es un ataque que dura exactamente un día','Solo afecta a software pirata'], c:1,
+     fb:'Los zero-days son especialmente peligrosos porque no existe defensa oficial al momento del ataque.'},
+    {t:3, q:'¿Qué finalidad cumple el cifrado de extremo a extremo?', a:['Comprimir archivos para ahorrar espacio','Garantizar que solo emisor y receptor puedan leer el contenido de la comunicación','Acelerar la velocidad de la red','Evitar el uso de licencias comerciales'], c:1,
+     fb:'El cifrado extremo a extremo impide que intermediarios (incluido el proveedor del servicio) lean los datos.'},
+    {t:3, q:'En una auditoría de software corporativo, ¿qué documento certifica el uso legítimo de una licencia?', a:['Un comprobante de compra o certificado de autenticidad (CoA) del proveedor','Una publicación en redes sociales','El historial de descargas del navegador','Una captura de pantalla del programa abierto'], c:0,
+     fb:'Las facturas y certificados de autenticidad son la evidencia legal válida ante una auditoría.'},
+    {t:3, q:'¿Qué es un "honeypot" en ciberseguridad?', a:['Un tipo de licencia de software gratuito','Un sistema señuelo diseñado para atraer y estudiar a atacantes','Un antivirus de código abierto','Un protocolo de cifrado de archivos'], c:1,
+     fb:'Los honeypots simulan sistemas vulnerables para detectar, desviar y analizar intentos de ataque.'},
+    {t:3, q:'¿Qué representa el modelo de licenciamiento "copyleft"?', a:['Prohíbe totalmente compartir el software','Permite copiar, modificar y redistribuir siempre que se mantenga la misma licencia libre','Es un sinónimo de software pirata','Aplica solo a videojuegos'], c:1,
+     fb:'El copyleft asegura que las libertades del software se preserven en todas sus versiones derivadas.'}
   ];
   let quizPool = [];
+
+  function levelTier(level){
+    if(level <= 3) return 1;
+    if(level <= 7) return 2;
+    return 3;
+  }
+
+  function questionsForTier(tier){
+    // Prioriza el tier del nivel actual, pero incluye tiers inferiores como refuerzo.
+    return QUIZ_BANK.filter(q => q.t <= tier);
+  }
 
   /* =========================================================
      AUDIO CHIPTUNE SINTETIZADO (Web Audio API)
   ========================================================= */
   const Audio_ = (function(){
-    let ctx = null, master = null, musicGain = null, sfxGain = null;
+    let ctx = null, master = null, musicGain = null, sfxGain = null, noiseBuffer = null;
     let musicTimer = null, muted = false;
+    let musicVol = 0.16, sfxVol = 0.34;
+    let intensity = 1; // 1..N, sube con el nivel
 
     function ensureCtx(){
       if(!ctx){
@@ -475,11 +544,20 @@
         if(!AC) return null;
         ctx = new AC();
         master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
-        musicGain = ctx.createGain(); musicGain.gain.value = 0.14; musicGain.connect(master);
-        sfxGain = ctx.createGain(); sfxGain.gain.value = 0.32; sfxGain.connect(master);
+        musicGain = ctx.createGain(); musicGain.gain.value = musicVol; musicGain.connect(master);
+        sfxGain = ctx.createGain(); sfxGain.gain.value = sfxVol; sfxGain.connect(master);
+        noiseBuffer = buildNoiseBuffer(ctx);
       }
       if(ctx.state === 'suspended') ctx.resume();
       return ctx;
+    }
+
+    function buildNoiseBuffer(c){
+      const len = c.sampleRate * 0.5;
+      const buf = c.createBuffer(1, len, c.sampleRate);
+      const data = buf.getChannelData(0);
+      for(let i=0;i<len;i++) data[i] = Math.random()*2 - 1;
+      return buf;
     }
 
     function tone(freq, dur, type, gainNode, startAt, vol){
@@ -496,32 +574,103 @@
       osc.start(t0); osc.stop(t0 + dur + 0.02);
     }
 
-    const BASS = [110, 110, 146.83, 130.81, 110, 110, 164.81, 146.83];
-    const ARP = [440, 554.37, 659.25, 554.37];
-    let step = 0;
+    function sweep(f0, f1, dur, type, gainNode, startAt, vol){
+      const c = ensureCtx(); if(!c) return;
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = type || 'sawtooth';
+      const t0 = startAt || c.currentTime;
+      osc.frequency.setValueAtTime(f0, t0);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(f1,1), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.35, t0 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g); g.connect(gainNode);
+      osc.start(t0); osc.stop(t0 + dur + 0.02);
+    }
+
+    function hit(gainNode, startAt, vol, dur, hp){
+      const c = ensureCtx(); if(!c || !noiseBuffer) return;
+      const src = c.createBufferSource(); src.buffer = noiseBuffer; src.loop = true;
+      const g = c.createGain();
+      const t0 = startAt || c.currentTime;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol || 0.3, t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      let node = src;
+      if(hp){
+        const filt = c.createBiquadFilter(); filt.type = 'highpass'; filt.frequency.value = hp;
+        src.connect(filt); node = filt;
+      }
+      node.connect(g); g.connect(gainNode);
+      src.start(t0); src.stop(t0 + dur + 0.02);
+    }
+
+    // Progresión de acordes que rota cada 8 compases, y arpegio/lead derivados.
+    const PROGRESSIONS = [
+      [110, 130.81, 146.83, 110],       // Am - C - D - Am
+      [130.81, 146.83, 164.81, 110],    // C - D - E - Am
+      [110, 146.83, 130.81, 164.81]     // Am - D - C - E
+    ];
+    const SCALE = [440, 493.88, 523.25, 587.33, 659.25, 698.46, 783.99, 880];
+    let step = 0, bar = 0, progIdx = 0;
+
+    function currentTempoMs(){
+      // Tempo base 250ms, se acelera ligeramente con la intensidad (nivel), con piso de 165ms.
+      return Math.max(165, 250 - (intensity-1) * 8);
+    }
 
     function musicStep(){
       const c = ensureCtx(); if(!c || muted) { step++; return; }
       const t = c.currentTime;
-      tone(BASS[step % BASS.length], 0.2, 'triangle', musicGain, t, 0.45);
+      const prog = PROGRESSIONS[progIdx % PROGRESSIONS.length];
+      const bassNote = prog[Math.floor(step/4) % prog.length];
+
+      // Bajo (siempre presente)
+      tone(bassNote, 0.2, 'triangle', musicGain, t, 0.4);
+
+      // Arpegio (a partir de intensidad 1)
       if(step % 2 === 0){
-        tone(ARP[(step/2|0) % ARP.length], 0.12, 'square', musicGain, t + 0.02, 0.15);
+        const arpNote = SCALE[(bassNote===110? (step/2|0) : (step/2|0)+2) % SCALE.length] / 2;
+        tone(arpNote, 0.12, 'square', musicGain, t + 0.02, 0.13);
       }
+      // Hi-hat: se activa desde intensidad 2 (nivel >= 3-ish)
+      if(intensity >= 2 && step % 1 === 0){
+        hit(musicGain, t, 0.06, 0.045, 6000);
+      }
+      // Kick: se activa desde intensidad 3
+      if(intensity >= 3 && step % 4 === 0){
+        sweep(160, 45, 0.16, 'sine', musicGain, t, 0.3);
+      }
+      // Lead melódico ligero: se activa desde intensidad 4 (tensión alta)
+      if(intensity >= 4 && step % 8 === 6){
+        const leadNote = SCALE[(bar) % SCALE.length];
+        tone(leadNote, 0.18, 'square', musicGain, t, 0.1);
+      }
+
       step++;
+      if(step % 16 === 0){ bar++; if(bar % 8 === 0) progIdx++; }
     }
 
     function startMusic(){
       if(!ensureCtx()) return;
       if(musicTimer) return;
       musicStep();
-      musicTimer = setInterval(musicStep, 250);
+      musicTimer = setInterval(musicStep, currentTempoMs());
     }
     function stopMusic(){
       if(musicTimer){ clearInterval(musicTimer); musicTimer = null; }
     }
+    function restartTempo(){
+      if(musicTimer){ stopMusic(); startMusic(); }
+    }
     function setMuted(m){
       muted = m;
       if(master) master.gain.value = m ? 0 : 1;
+    }
+    function applyVolumes(){
+      if(musicGain) musicGain.gain.value = musicVol;
+      if(sfxGain) sfxGain.gain.value = sfxVol;
     }
 
     return {
@@ -529,14 +678,36 @@
       startMusic, stopMusic,
       toggleMute(){ setMuted(!muted); return muted; },
       isMuted(){ return muted; },
+      setMusicVolume(v){ musicVol = Math.max(0, Math.min(1, v)); applyVolumes(); },
+      setSfxVolume(v){ sfxVol = Math.max(0, Math.min(1, v)); applyVolumes(); },
+      getMusicVolume(){ return musicVol; },
+      getSfxVolume(){ return sfxVol; },
+      setIntensity(level){
+        // 1 (niveles 1-2), 2 (3-4), 3 (5-7), 4 (8+)
+        intensity = level >= 8 ? 4 : level >= 5 ? 3 : level >= 3 ? 2 : 1;
+        restartTempo();
+      },
       catchGood(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(784,0.08,'square',sfxGain,t,0.3); tone(1174.66,0.12,'square',sfxGain,t+0.05,0.28); },
-      catchBad(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(140,0.2,'sawtooth',sfxGain,t,0.35); },
+      catchBad(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(140,0.2,'sawtooth',sfxGain,t,0.35); hit(sfxGain, t, 0.2, 0.12, 200); },
       reject(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; tone(587.33,0.07,'triangle',sfxGain,t,0.2); },
       powerup(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,0.1,'square',sfxGain,t+i*0.05,0.25)); },
       gameOver(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [330,277.18,220,164.81].forEach((f,i)=>tone(f,0.25,'sawtooth',sfxGain,t+i*0.14,0.3)); },
       click(){ const c=ensureCtx(); if(!c) return; tone(600,0.04,'square',sfxGain,c.currentTime,0.15); },
       quizRight(){ const c=ensureCtx(); if(!c) return; const t=c.currentTime; [587.33,880].forEach((f,i)=>tone(f,0.15,'triangle',sfxGain,t+i*0.08,0.3)); },
-      quizWrong(){ const c=ensureCtx(); if(!c) return; tone(165,0.25,'sawtooth',sfxGain,c.currentTime,0.28); }
+      quizWrong(){ const c=ensureCtx(); if(!c) return; tone(165,0.25,'sawtooth',sfxGain,c.currentTime,0.28); },
+      levelUpFanfare(){
+        const c=ensureCtx(); if(!c) return; const t=c.currentTime;
+        [523.25,659.25,783.99,1046.5,1318.5].forEach((f,i)=>tone(f,0.16,'square',sfxGain,t+i*0.07,0.3));
+        hit(sfxGain, t, 0.22, 0.2, 150);
+      },
+      comboMilestone(){
+        const c=ensureCtx(); if(!c) return; const t=c.currentTime;
+        [880,1108.7,1318.5].forEach((f,i)=>tone(f,0.1,'triangle',sfxGain,t+i*0.05,0.22));
+      },
+      lowLives(){
+        const c=ensureCtx(); if(!c) return; const t=c.currentTime;
+        sweep(500, 180, 0.3, 'sawtooth', sfxGain, t, 0.22);
+      }
     };
   })();
 
@@ -561,7 +732,8 @@
     nextLevelAt:120,
     spawnInterval:1100, fallSpeed:1.3,
     lastSpawn:0,
-    shieldUntil:0, multiUntil:0
+    shieldUntil:0, multiUntil:0, slowUntil:0,
+    driftFactor:0, illegalBias:0, doubleSpawnChance:0
   };
 
   let items = [];
@@ -636,27 +808,47 @@
   ========================================================= */
   function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-  function spawnItem(){
+  function spawnOne(forceType){
     state.itemsSpawnedTotal++;
     const roll = Math.random();
+    const powerupChance = state.level >= 2 ? 0.08 : 0;
+    const illegalChance = 0.48 + (state.illegalBias || 0); // sube con el nivel
     let type, data;
-    if(roll < 0.08 && state.level >= 2){
+    if(forceType){
+      type = forceType;
+    } else if(roll < powerupChance && state.level >= 2){
+      type = 'powerup';
+    } else if(roll < powerupChance + illegalChance){
+      type = 'illegal';
+    } else {
+      type = 'legal';
+    }
+    if(type === 'powerup'){
       const pw = pick(POWERUPS);
       type = pw.type; data = {code:pw.code, label:pw.label};
-    } else if(roll < 0.52){
-      type = 'legal'; data = pick(LEGAL_ITEMS);
+    } else if(type === 'legal'){
+      data = pick(LEGAL_ITEMS);
     } else {
-      type = 'illegal'; data = pick(ILLEGAL_ITEMS);
+      data = pick(ILLEGAL_ITEMS);
     }
     const w = 76;
+    const drift = (state.driftFactor || 0) * (Math.random() < 0.5 ? -1 : 1) * (0.6 + Math.random()*0.6);
     items.push({
       type, code:data.code, label:data.label,
       x: Math.random()*(W - w) + w/2,
       y: -30,
       w, h:42,
       vy: state.fallSpeed * (0.85 + Math.random()*0.35),
+      vx: drift * state.fallSpeed,
       caught:false, wobble: Math.random()*Math.PI*2
     });
+  }
+
+  function spawnItem(){
+    spawnOne();
+    if(Math.random() < (state.doubleSpawnChance || 0)){
+      setTimeout(()=>{ if(state.running && !state.paused) spawnOne(); }, 140 + Math.random()*180);
+    }
   }
 
   /* =========================================================
@@ -704,7 +896,10 @@
   function onCatchLegal(item){
     state.itemsCaughtTotal++;
     state.combo++;
-    if(state.combo>0 && state.combo % 5 === 0 && state.multiplier < 4) state.multiplier++;
+    if(state.combo>0 && state.combo % 5 === 0 && state.multiplier < 4){
+      state.multiplier++;
+      Audio_.comboMilestone();
+    }
     const mult = Date.now() < state.multiUntil ? 2 : 1;
     const pts = 10 * state.multiplier * mult;
     state.score += pts;
@@ -729,6 +924,7 @@
     paddle.ledColor = 'red'; paddle.led = 1;
     showToast('⚠️ ' + pick(FACTS_BAD), 'bad');
     renderHUD();
+    if(state.lives === 1) Audio_.lowLives();
     if(state.lives <= 0) return endGame();
   }
 
@@ -752,6 +948,10 @@
       state.multiUntil = Date.now() + 7000;
       showFloater('⚡ PUNTOS 2X', item.x, item.y, 'var(--amber)');
       showToast('⚡ Multiplicador 2X activo por 7 segundos.', 'good');
+    } else if(item.type === 'slow'){
+      state.slowUntil = Date.now() + 5000;
+      showFloater('🐢 RALENTIZADO', item.x, item.y, 'var(--cyan)');
+      showToast('🐢 Protocolo de contención: tráfico ralentizado 5s.', 'good');
     }
   }
 
@@ -783,15 +983,24 @@
   const quizLevelLabel = document.getElementById('quizLevelLabel');
 
   function nextQuizQuestion(){
-    if(quizPool.length === 0) quizPool = QUIZ_BANK.slice();
-    const idx = Math.floor(Math.random()*quizPool.length);
-    return quizPool.splice(idx,1)[0];
+    const tier = levelTier(state.level);
+    if(quizPool.length === 0) quizPool = questionsForTier(3); // pool completo para no repetir hasta agotar
+    // Prioriza preguntas del tier actual o inferior; si no quedan, usa lo que haya.
+    let candidates = quizPool.filter(q => q.t <= tier);
+    if(candidates.length === 0) candidates = quizPool;
+    const idx = Math.floor(Math.random()*candidates.length);
+    const chosen = candidates[idx];
+    quizPool.splice(quizPool.indexOf(chosen), 1);
+    return chosen;
   }
+
+  const TIER_LABEL = {1:'BÁSICO', 2:'INTERMEDIO', 3:'AVANZADO'};
 
   function openQuiz(){
     state.paused = true;
     const q = nextQuizQuestion();
-    quizLevelLabel.textContent = '▲ Auditoría de Nivel ' + state.level + ' superada';
+    const tierName = TIER_LABEL[q.t] || 'BÁSICO';
+    quizLevelLabel.textContent = '▲ Auditoría Nivel ' + state.level + ' · Dificultad: ' + tierName;
     quizQuestion.textContent = q.q;
     quizOptions.innerHTML = '';
     quizFeedback.classList.remove('show');
@@ -835,10 +1044,20 @@
 
   function levelUp(){
     state.level++;
-    state.nextLevelAt = state.score + 140 + (state.level-1)*60;
-    state.fallSpeed = Math.min(state.fallSpeed + 0.15, 4.0);
-    state.spawnInterval = Math.max(state.spawnInterval - 45, 460);
+    state.nextLevelAt = state.score + 150 + (state.level-1)*65;
+    // Curva de dificultad más pronunciada: crece rápido al inicio y se suaviza en niveles muy altos.
+    const growth = 0.22 + Math.min(state.level, 10) * 0.012;
+    state.fallSpeed = Math.min(state.fallSpeed + growth, 5.6);
+    state.spawnInterval = Math.max(state.spawnInterval - (55 - Math.min(state.level,10)*1.5), 320);
+    // A partir del nivel 4, los ítems adquieren deriva horizontal (más difícil de predecir).
+    state.driftFactor = Math.min(0.35, Math.max(0, (state.level - 3) * 0.06));
+    // A partir del nivel 6, aumenta la proporción de ítems ilegales (más decisiones bajo presión).
+    state.illegalBias = Math.min(0.14, Math.max(0, (state.level - 5) * 0.02));
+    // Cada 3 niveles, probabilidad de doble spawn (dos ítems casi simultáneos).
+    state.doubleSpawnChance = Math.min(0.35, Math.floor(state.level/3) * 0.08);
     renderHUD();
+    Audio_.setIntensity(state.level);
+    Audio_.levelUpFanfare();
   }
 
   /* =========================================================
@@ -849,7 +1068,8 @@
     illegal:{ fill:'rgba(255,51,102,0.14)', border:'#FF3366', text:'#FFE1E7' },
     shield:{ fill:'rgba(157,78,221,0.2)', border:'#9D4EDD', text:'#F3E8FF' },
     cleaner:{ fill:'rgba(255,183,3,0.18)', border:'#FFB703', text:'#FFF8E7' },
-    multi:{ fill:'rgba(0,255,209,0.25)', border:'#00FFD1', text:'#E0FFFB' }
+    multi:{ fill:'rgba(0,255,209,0.25)', border:'#00FFD1', text:'#E0FFFB' },
+    slow:{ fill:'rgba(0,255,209,0.2)', border:'#33FFDD', text:'#E0FFFB' }
   };
 
   let scanY = 0;
@@ -880,10 +1100,14 @@
       spawnItem();
     }
 
+    const slowMo = Date.now() < state.slowUntil ? 0.55 : 1;
     const pyTop = paddle.y, pyBot = paddle.y + paddle.h;
     for(let i=items.length-1; i>=0; i--){
       const it = items[i];
-      it.y += it.vy * (dt/16.7);
+      it.y += it.vy * slowMo * (dt/16.7);
+      it.x += (it.vx || 0) * slowMo * (dt/16.7);
+      if(it.x < it.w/2){ it.x = it.w/2; it.vx = Math.abs(it.vx||0); }
+      if(it.x > W - it.w/2){ it.x = W - it.w/2; it.vx = -Math.abs(it.vx||0); }
       it.wobble += dt/450;
       const ix = it.x + Math.sin(it.wobble)*4;
 
@@ -948,6 +1172,7 @@
     else if(it.type === 'shield') icon = '🛡';
     else if(it.type === 'cleaner') icon = '🧹';
     else if(it.type === 'multi') icon = '⚡';
+    else if(it.type === 'slow') icon = '🐢';
     ctx2d.fillText(icon, 0, -6);
     ctx2d.fillStyle = c.text;
     ctx2d.font = '600 8px "JetBrains Mono", monospace';
@@ -1018,7 +1243,8 @@
     state.legalCaught = 0; state.rejected = 0; state.itemsSpawnedTotal = 0; state.itemsCaughtTotal = 0;
     state.nextLevelAt = 120;
     state.spawnInterval = cfg.spawnRate; state.fallSpeed = 1.2 * cfg.speedFactor;
-    state.lastSpawn = 300; state.shieldUntil = 0; state.multiUntil = 0;
+    state.lastSpawn = 300; state.shieldUntil = 0; state.multiUntil = 0; state.slowUntil = 0;
+    state.driftFactor = 0; state.illegalBias = 0; state.doubleSpawnChance = 0;
     items = []; quizPool = QUIZ_BANK.slice();
     paddle.x = 120; paddle.targetX = 120;
   }
@@ -1031,6 +1257,7 @@
     resizeCanvas();
     renderHUD();
     lastTime = performance.now();
+    Audio_.setIntensity(1);
     if(!Audio_.isMuted()) Audio_.startMusic();
     rafId = requestAnimationFrame(loop);
   }
@@ -1153,6 +1380,16 @@
   }
   document.getElementById('muteBtn').addEventListener('click', toggleMuteUI);
   document.getElementById('soundToggleStart').addEventListener('click', ()=>{ Audio_.unlock(); toggleMuteUI(); });
+
+  document.getElementById('musicVolRange').addEventListener('input', (e)=>{
+    Audio_.unlock();
+    Audio_.setMusicVolume(e.target.value/100);
+  });
+  document.getElementById('sfxVolRange').addEventListener('input', (e)=>{
+    Audio_.unlock();
+    Audio_.setSfxVolume(e.target.value/100);
+    Audio_.click();
+  });
 
   document.addEventListener('gesturestart', (e)=>e.preventDefault());
 
